@@ -11,6 +11,7 @@ interface AppState {
     activeTab: string;
     currentWeather: Weather | undefined;
     forecasts: Forecast[] | undefined;
+    fetchWeatherDisabled: boolean;
 }
 
 class App extends Component<{}, AppState> {
@@ -18,6 +19,7 @@ class App extends Component<{}, AppState> {
         super(props);
         this.state = {
             activeTab: cities[0].name,
+            fetchWeatherDisabled: false,
             currentWeather: undefined,
             forecasts: undefined
         };
@@ -25,12 +27,7 @@ class App extends Component<{}, AppState> {
     }
 
     handleTabChange(val: string) {
-        // Resetting state here to show loading state, and to prevent stale data
-        // Would cache the results server-side in production with something like Redis
-        // to prevent the loading flashes for better UX
         this.setState({
-            currentWeather: undefined,
-            forecasts: undefined,
             activeTab: val
         });
     }
@@ -88,11 +85,22 @@ class App extends Component<{}, AppState> {
     };
 
     componentDidMount() {
+        // Resetting state here to show loading state, and to prevent stale data
+        // Would cache the results server-side in production with something like Redis
+        // to prevent the loading flashes for better UX
+        this.setState({
+            currentWeather: undefined,
+            forecasts: undefined
+        });
         this.fetchWeather();
     }
 
     componentDidUpdate(_: any, prevState: AppState) {
         if (prevState.activeTab !== this.state.activeTab) {
+            this.setState({
+                currentWeather: undefined,
+                forecasts: undefined
+            });
             this.fetchWeather();
         }
     }
