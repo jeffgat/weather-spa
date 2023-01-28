@@ -1,3 +1,4 @@
+import React, { Component } from 'react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import LargeBlock from './components/LargeBlock';
@@ -6,25 +7,35 @@ import './App.less';
 import { cities, FORECAST_DAYS, TEMP_UNITS } from './constants';
 import SmallBlocks from './components/SmallBlocks';
 
-// convert to a class component
-function App() {
-    const [activeTab, setActiveTab] = useState<string>(cities[0].name);
-    const [currentWeather, setCurrentWeather] = useState<Weather>();
-    const [forecasts, setForecasts] = useState<Forecast[]>();
+interface AppState {
+    activeTab: string;
+    currentWeather: Weather | undefined;
+    forecasts: Forecast[] | undefined;
+}
 
-    const handleTabChange = (val: string) => {
-        // Resetting state here to show loading state, and to prevent stale data
-        // Would likely cache the results server-side in production with something like Redis
-        // to prevent the loading flashes for better UX
-        setCurrentWeather(undefined);
-        setForecasts(undefined);
-        setActiveTab(val);
-    };
+class App extends Component<{}, AppState> {
+    constructor(props: any) {
+        super(props);
+        this.state = {
+            activeTab: cities[0].name,
+            currentWeather: undefined,
+            forecasts: undefined
+        };
+        this.handleTabChange = this.handleTabChange.bind(this);
+    }
 
-    const fetchWeather = async () => {
+    handleTabChange(val: string) {
+        this.setState({
+            currentWeather: undefined,
+            forecasts: undefined,
+            activeTab: val
+        });
+    }
+
+    fetchWeather = async () => {
         try {
             for (const city of cities) {
-                if (city.name === activeTab) {
+                if (city.name === this.state.activeTab) {
                     // Fetch weather data
                     const res = await Promise.all([
                         axios.get(
@@ -47,11 +58,6 @@ function App() {
 
                     const data = res.map((res) => res.data);
 
-                    // Set state
-                    setCurrentWeather({
-                        temp: data[0].main.temp,
-                        skies: data[0].weather[0].main
-                    });
                     const filteredDays = [];
                     for (const day of data[1].list) {
                         if (day.dt_txt.includes('15:00:00')) {
@@ -62,7 +68,15 @@ function App() {
                             });
                         }
                     }
-                    setForecasts(filteredDays);
+
+                    // Set state
+                    this.setState({
+                        currentWeather: {
+                            temp: data[0].main.temp,
+                            skies: data[0].weather[0].main
+                        },
+                        forecasts: filteredDays
+                    });
                 }
             }
         } catch (err) {
@@ -70,35 +84,44 @@ function App() {
         }
     };
 
-    useEffect(() => {
-        fetchWeather();
-    }, [activeTab]);
+    componentDidMount() {
+        this.fetchWeather();
+    }
 
-    return (
-        <div className="root">
-            <div className="tabs">
-                {cities.map((city) => (
-                    <button
-                        className={`tab ${
-                            activeTab === city.name ? 'active' : ''
-                        }`}
-                        onClick={() => handleTabChange(city.name)}
-                        key={city.name}
-                    >
-                        {city.name}
-                    </button>
-                ))}
-            </div>
+    componentDidUpdate(_: any, prevState: AppState) {
+        if (prevState.activeTab !== this.state.activeTab) {
+            this.fetchWeather();
+        }
+    }
+    render() {
+        return (
+            <div className="root">
+                <div className="tabs">
+                    {cities.map((city) => (
+                        <button
+                            className={`tab ${
+                                this.state.activeTab === city.name
+                                    ? 'active'
+                                    : ''
+                            }`}
+                            onClick={() => this.handleTabChange(city.name)}
+                            key={city.name}
+                        >
+                            {city.name}
+                        </button>
+                    ))}
+                </div>
 
-            <div className="card">
-                <LargeBlock currentWeather={currentWeather} />
-                <SmallBlocks
-                    forecasts={forecasts}
-                    forecastDays={FORECAST_DAYS}
-                />
+                <div className="card">
+                    <LargeBlock currentWeather={this.state.currentWeather} />
+                    <SmallBlocks
+                        forecasts={this.state.forecasts}
+                        forecastDays={FORECAST_DAYS}
+                    />
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
 }
 
 export default App;
