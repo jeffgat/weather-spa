@@ -11,7 +11,6 @@ interface AppState {
     activeTab: string;
     currentWeather: Weather | undefined;
     forecasts: Forecast[] | undefined;
-    fetchWeatherDisabled: boolean;
 }
 
 class App extends Component<{}, AppState> {
@@ -19,7 +18,6 @@ class App extends Component<{}, AppState> {
         super(props);
         this.state = {
             activeTab: cities[0].name,
-            fetchWeatherDisabled: false,
             currentWeather: undefined,
             forecasts: undefined
         };
@@ -80,6 +78,7 @@ class App extends Component<{}, AppState> {
                 }
             }
         } catch (err) {
+            // Handle error, would display error message
             console.log('Error fetching weather', err);
         }
     };
