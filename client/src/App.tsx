@@ -1,103 +1,101 @@
-import { useState } from 'react';
-import './App.less';
-import { BsFillCloudFill } from 'react-icons/bs';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-
-const cities = [
-    {
-        ottawa: {
-            lat: 45.42,
-            lon: -75.69
-        }
-    },
-    {
-        moscow: {
-            lat: 55.75,
-            lon: 37.61
-        }
-    },
-    {
-        tokyo: {
-            lat: 35.68,
-            lon: 139.75
-        }
-    }
-];
-console.log(cities);
-
-const LargeBlock = () => (
-    <div className="card__highlight">
-        <h2>Today</h2>
-        <div className="highlight__row">
-            <BsFillCloudFill fontSize={60} />
-            <div>
-                <span className="highlight__temp">19°</span>
-                <p className="highlight__skies">clouds</p>
-            </div>
-        </div>
-    </div>
-);
-
-const SmallBlock = (
-    { day, temp }: any // type this
-) => (
-    <div className="row__item">
-        <h3 className="row__item__day">{day}</h3>
-        <BsFillCloudFill fontSize={24} />
-        <p className="row__item__temp">{temp}</p>
-    </div>
-);
-
-// -75.69
-// 45.42
+import LargeBlock from './components/LargeBlock';
+import { Forecast, Weather } from './types';
+import './App.less';
+import { cities, FORECAST_DAYS, TEMP_UNITS } from './constants';
+import SmallBlocks from './components/SmallBlocks';
 
 // convert to a class component
 function App() {
-    const [count, setCount] = useState(0);
+    const [activeTab, setActiveTab] = useState<string>(cities[0].name);
+    const [currentWeather, setCurrentWeather] = useState<Weather>();
+    const [forecasts, setForecasts] = useState<Forecast[]>();
 
-    const handleTabChange = () => {
-        console.log('clicked');
+    const handleTabChange = (val: string) => {
+        // Resetting state here to show loading state, and to prevent stale data
+        // Would likely cache the results server-side in production with something like Redis
+        // to prevent the loading flashes for better UX
+        setCurrentWeather(undefined);
+        setForecasts(undefined);
+        setActiveTab(val);
     };
 
-    console.log(import.meta.env.VITE_WEATHER_API_KEY);
-    const fetchCoords = async () => {
+    const fetchWeather = async () => {
         try {
+            for (const city of cities) {
+                if (city.name === activeTab) {
+                    // Fetch weather data
+                    const res = await Promise.all([
+                        axios.get(
+                            `https://api.openweathermap.org/data/2.5/weather?lat=${
+                                city.lat
+                            }&lon=${city.lon}&units=${TEMP_UNITS}&appid=${
+                                import.meta.env.VITE_WEATHER_API_KEY
+                            }`
+                        ),
+                        axios.get(
+                            `https://api.openweathermap.org/data/2.5/forecast?lat=${
+                                city.lat
+                            }&lon=${
+                                city.lon
+                            }&units=${TEMP_UNITS}&cnt=34&appid=${
+                                import.meta.env.VITE_WEATHER_API_KEY
+                            }`
+                        )
+                    ]);
 
-            const res = await axios.get(
-                `https://api.openweathermap.org/data/2.5/forecast?lat=35.68&lon=139.76&units=metric&appid=${
-                    import.meta.env.VITE_WEATHER_API_KEY
-                }`
-            );
-            console.log('res', res.data);
+                    const data = res.map((res) => res.data);
+
+                    // Set state
+                    setCurrentWeather({
+                        temp: data[0].main.temp,
+                        skies: data[0].weather[0].main
+                    });
+                    const filteredDays = [];
+                    for (const day of data[1].list) {
+                        if (day.dt_txt.includes('15:00:00')) {
+                            filteredDays.push({
+                                date: day.dt_txt,
+                                temp: day.main.temp,
+                                skies: day.weather[0].main
+                            });
+                        }
+                    }
+                    setForecasts(filteredDays);
+                }
+            }
         } catch (err) {
-            console.log('axios err', err);
+            console.log('Error fetching weather', err);
         }
     };
 
-    fetchCoords();
+    useEffect(() => {
+        fetchWeather();
+    }, [activeTab]);
 
     return (
         <div className="root">
             <div className="tabs">
-                <button className="tab active" onClick={handleTabChange}>
-                    Ottawa
-                </button>
-                <button className="tab" onClick={handleTabChange}>
-                    Moscow
-                </button>
-                <button className="tab" onClick={handleTabChange}>
-                    Tokyo
-                </button>
+                {cities.map((city) => (
+                    <button
+                        className={`tab ${
+                            activeTab === city.name ? 'active' : ''
+                        }`}
+                        onClick={() => handleTabChange(city.name)}
+                        key={city.name}
+                    >
+                        {city.name}
+                    </button>
+                ))}
             </div>
 
             <div className="card">
-                <LargeBlock />
-                <div className="card__row">
-                    <SmallBlock day="Wed" temp="18°" />
-                    <SmallBlock day="Thurs" temp="19°" />
-                    <SmallBlock day="Fri" temp="20°" />
-                    <SmallBlock day="Sat" temp="21°" />
-                </div>
+                <LargeBlock currentWeather={currentWeather} />
+                <SmallBlocks
+                    forecasts={forecasts}
+                    forecastDays={FORECAST_DAYS}
+                />
             </div>
         </div>
     );

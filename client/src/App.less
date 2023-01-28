@@ -1,4 +1,10 @@
 @border-primary: 3px solid #fff;
+@font-teko: 'Teko', sans-serif;
+@xs: ~'(max-width: 600px)';
+@sm: ~'(min-width: 600px)';
+@md: ~'(min-width: 960px)';
+@lg: ~'(min-width: 1280px)';
+@xl: ~'(min-width: 1920px)';
 
 .root {
     max-width: 1280px;
@@ -7,12 +13,16 @@
     text-align: center;
 }
 
+.tabs {
+    margin-bottom: 1rem;
+}
+
 .tab {
     border-radius: 8px;
     border: 1px solid transparent;
     padding: 0.6em 1.2em;
     letter-spacing: 0.4px;
-    font-size: 1em;
+    font-size: 1.25rem;
     font-family: inherit;
     text-transform: uppercase;
     background-color: transparent;
@@ -20,45 +30,81 @@
     transition: border-color 0.25s;
     color: #36363b;
     font-weight: 400;
+    transition: all 300ms ease;
+
+    &:hover {
+        color: #32a5e6;
+    }
 
     &.active {
         color: #32a5e6;
-        font-weight: 800;
+        font-weight: 600;
     }
 }
 
 .card {
-    max-width: 600px;
     margin: 0 auto;
     background-color: #edf6fb;
     border-radius: 8px;
     color: #33333a;
     border: @border-primary;
     box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1), 0 6px 16px rgba(0, 0, 0, 0.15);
-}
+    max-width: 600px;
 
-.card__highlight {
-    padding: 1rem;
-    border-radius: 8px 8px 0 0;
-
-    h2 {
-        font-weight: 300;
-        font-size: 1.25rem;
+    @media @xs {
+        max-width: 100%;
+    }
+    @media @sm {
+        max-width: 600px;
+    }
+    @media @md {
+        max-width: 960px;
+    }
+    @media @lg {
+        max-width: 1280px;
+    }
+    @media @xl {
+        max-width: 1920px;
     }
 }
 
-.highlight__row {
+.lg__block {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+    border-radius: 8px 8px 0 0;
+
+    h2 {
+        font-weight: 200;
+        font-size: 1.25rem;
+        margin-bottom: 0;
+        @media @xl {
+            font-size: 1.5rem;
+        }
+    }
+}
+
+.lg__block__row {
     display: flex;
     align-items: center;
     justify-content: center;
     padding-top: 1rem;
 }
-.highlight__temp {
-    font-size: 2.5rem;
+.lg__block__text {
+    text-align: left;
+    padding-left: 0.5rem;
+}
+.lg__block__temp {
+    font-family: @font-teko;
+    font-size: 3rem;
     font-weight: 800;
 }
-.highlight__skies {
+.lg__block__skies {
     margin: 0;
+    font-weight: 200;
+    font-size: 1.2rem;
+    @media @xl {
+        font-size: 1.5rem;
+    }
 }
 
 .card__row {
@@ -66,22 +112,37 @@
     align-items: center;
     justify-content: center;
     border-top: @border-primary;
+
+    @media @xs {
+        flex-direction: column;
+    }
 }
 
-.row__item {
+.sm__block {
     flex: 1;
-    padding: 1rem;
+    padding: 0.5rem;
     border-right: @border-primary;
     &:last-child {
         border-right: none;
     }
+
+    @media @xs {
+        border-bottom: @border-primary;
+        width: 100%;
+        padding: 0;
+    }
 }
 
-.row__item__day {
-    font-weight: 300;
+.sm__block__day {
+    font-weight: 200;
     font-size: 1rem;
+    @media @xl {
+        font-size: 1.25rem;
+    }
 }
-.row__item__temp {
+.sm__block__temp {
+    font-family: @font-teko;
     font-size: 2rem;
     font-weight: 800;
+    margin: 1rem auto;
 }
