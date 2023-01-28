@@ -53,14 +53,9 @@
     max-width: 960px;
   }
 }
-@media (min-width: 1280px) {
-  .card {
-    max-width: 1280px;
-  }
-}
 @media (min-width: 1920px) {
   .card {
-    max-width: 1920px;
+    max-width: 1280px;
   }
 }
 .lg__block {

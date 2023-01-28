@@ -37,11 +37,11 @@ const LargeBlock = ({ currentWeather }: LargeBlockProps) => {
     } else {
         return (
             <div className="lg__block">
-                <h2>Today</h2>
+                <h2>Loading...</h2>
                 <div className="lg__block__row">
                     <WiTime4 fontSize={92} />
                     <div className="lg__block__text">
-                        <p className="lg__block__skies">Loading...</p>
+                        <p className="lg__block__skies">°</p>
                     </div>
                 </div>
             </div>

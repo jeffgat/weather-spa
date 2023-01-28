@@ -25,6 +25,9 @@ class App extends Component<{}, AppState> {
     }
 
     handleTabChange(val: string) {
+        // Resetting state here to show loading state, and to prevent stale data
+        // Would cache the results server-side in production with something like Redis
+        // to prevent the loading flashes for better UX
         this.setState({
             currentWeather: undefined,
             forecasts: undefined,
